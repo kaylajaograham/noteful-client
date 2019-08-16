@@ -37,3 +37,13 @@ export default class NotePageMain extends React.Component {
     )
   }
 }
+
+NotePageMain.propTypes ={
+  notes: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    modified: PropTypes.string.isRequired,
+    folderId: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired
+  }))
+}

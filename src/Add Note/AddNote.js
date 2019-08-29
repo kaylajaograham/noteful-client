@@ -16,6 +16,11 @@ export default class AddNote extends Component {
       validationMessage: ''
     };
   }
+
+  /* to trigger error boundary
+  componentDidMount() { throw new Error(); }
+  */
+
   static contextType = ApiContext;
   static defaultProps = {
     folders: []
@@ -71,6 +76,7 @@ export default class AddNote extends Component {
       .then(res => res.json())
       .then(data => {
         this.context.handleAddNote(data);
+        this.props.history.push(`/folder/${this.state.id}`);
       })
       .catch(err => {
         this.setState({ error: err.message });
@@ -91,6 +97,7 @@ export default class AddNote extends Component {
 
   render() {
     return (
+    
       <section className='AddNote'>
         <h2>Create a note</h2>
         <NotefulForm
@@ -156,6 +163,7 @@ export default class AddNote extends Component {
           </div>
         )}
       </section>
+      
     );
   }
 }

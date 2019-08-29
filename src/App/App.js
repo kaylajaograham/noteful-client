@@ -10,6 +10,7 @@ import AddNote from '../Add Note/AddNote';
 import ApiContext from '../ApiContext';
 import config from '../config';
 import './App.css';
+import NotefulError from '../NotefulError/NotefulError';
 
 class App extends Component {
     state = {
@@ -117,7 +118,9 @@ class App extends Component {
                             <FontAwesomeIcon icon="check-double" />
                         </h1>
                     </header>
+                    <NotefulError>
                     <main className="App__main">{this.renderMainRoutes()}</main>
+                    </NotefulError>
                 </div>
             </ApiContext.Provider>
         );

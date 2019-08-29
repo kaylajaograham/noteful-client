@@ -11,6 +11,7 @@ class NotefulError extends Component {
   }
 
   render() {
+    console.log(this.state.hasError);
     if (this.state.hasError) {
       return <h2>Sorry. There was an error.</h2>;
     }

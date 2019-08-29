@@ -28,7 +28,7 @@ export default class AddFolder extends Component {
           validationMessage: '',
           nameValid: true
         },
-        this.handleAddFolder()
+        this.handleAddFolder(),
       );
     }
   };
@@ -56,6 +56,7 @@ export default class AddFolder extends Component {
       .then(res => res.json())
       .then(data => {
         this.context.handleAddFolder(data);
+        this.props.history.push('/');
       })
       .catch(err => {
         this.setState({

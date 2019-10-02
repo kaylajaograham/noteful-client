@@ -1,21 +1,23 @@
-
-import React from 'react'
+import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import Note from '../Note/Note'
-import CircleButton from '../CircleButton/CircleButton'
-import ApiContext from '../ApiContext'
-import { getNotesForFolder } from '../notes-helpers'
-import './NoteListMain.css'
-import PropTypes from 'prop-types' 
+import PropTypes from 'prop-types';
 
-export default class NoteListMain extends React.Component {
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import './NoteListMain.css'
+
+import NotefulContext from '../NotefulContext'
+import Note from '../Note/Note'
+import { getNotesForFolder } from '../notes-helpers'
+import CircleButton from '../CircleButton/CircleButton'
+
+export default class NoteListMain extends Component {
   static defaultProps = {
     match: {
       params: {}
     }
   }
-  static contextType = ApiContext
+
+  static contextType = NotefulContext;
 
   render() {
     const { folderId } = this.props.match.params
@@ -23,14 +25,15 @@ export default class NoteListMain extends React.Component {
     const notesForFolder = getNotesForFolder(notes, folderId)
     return (
       <section className='NoteListMain'>
-        <ul>
-          {notesForFolder.map(note =>
+        <ul id="note__list">
+          {notesForFolder.map(note => 
             <li key={note.id}>
               <Note
                 id={note.id}
-                name={note.name}
+                name={note.note_name}
                 modified={note.modified}
               />
+              
             </li>
           )}
         </ul>
@@ -38,25 +41,21 @@ export default class NoteListMain extends React.Component {
           <CircleButton
             tag={Link}
             to='/add-note'
-            type='button'
-            className='NoteListMain__add-note-button'
-          >
+            type='butto'
+            className='NoteListMain__add-note-button'>
             <FontAwesomeIcon icon='plus' />
             <br />
             Note
           </CircleButton>
+          
         </div>
       </section>
     )
   }
+
 }
 
-NoteListMain.propTypes = {
-  notes: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    modified: PropTypes.string.isRequired,
-    folderId: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired
-  }))
-}
+
+NoteListMain.propType = {
+  match: PropTypes.object.isRequired
+};

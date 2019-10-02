@@ -1,44 +1,52 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
+import PropTypes from 'prop-types';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import ApiContext from '../ApiContext'
-import config from '../config'
 import './Note.css'
 
+import NotefulContext from '../NotefulContext'
+import config from '../config'
+
+
+
 export default class Note extends React.Component {
-  static defaultProps ={
+  static defaultProps = {
     onDeleteNote: () => {},
   }
-  static contextType = ApiContext;
 
-  handleClickDelete = e => {
-    e.preventDefault()
+  static contextType = NotefulContext;
+
+  handleClickDelete = () => {
     const noteId = this.props.id
+
 
     fetch(`${config.API_ENDPOINT}/notes/${noteId}`, {
       method: 'DELETE',
       headers: {
-        'content-type': 'application/json'
+        'content-Type': 'application/json'
       },
     })
-      .then(res => {
-        if (!res.ok)
-          return res.json().then(e => Promise.reject(e))
-        return res.json()
-      })
-      .then(() => {
-        this.context.deleteNote(noteId)
-        // allow parent to perform extra behaviour
-        this.props.onDeleteNote(noteId)
-      })
-      .catch(error => {
-        console.error({ error })
-      })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(e => Promise.reject(e))
+      }
+    })
+    .then(() => {
+      // deletes from context which updates state by removing note
+      this.context.deleteNote(noteId)
+      // sends user back to homepage after delete
+      this.props.onDeleteNote(noteId)
+    })
+    .catch(err => {
+      console.log({ err })
+    })
   }
 
   render() {
     const { name, id, modified } = this.props
+
     return (
       <div className='Note'>
         <h2 className='Note__title'>
@@ -46,11 +54,10 @@ export default class Note extends React.Component {
             {name}
           </Link>
         </h2>
-        <button
-          className='Note__delete'
+        <button 
+          className='Note__delete' 
           type='button'
-          onClick={this.handleClickDelete}
-        >
+          onClick={ this.handleClickDelete }>
           <FontAwesomeIcon icon='trash-alt' />
           {' '}
           remove
@@ -64,7 +71,14 @@ export default class Note extends React.Component {
             </span>
           </div>
         </div>
-      </div>
+      </div>        
     )
   }
 }
+
+Note.propType = {
+  onDeleteNote: PropTypes.func.isRequired,
+  name: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  modified: PropTypes.string
+};

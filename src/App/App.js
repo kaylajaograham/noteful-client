@@ -1,63 +1,92 @@
 import React, {Component} from 'react';
 import {Route, Link} from 'react-router-dom';
+
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+
+import NotefulContext from '../NotefulContext';
 import NoteListNav from '../NoteListNav/NoteListNav';
 import NotePageNav from '../NotePageNav/NotePageNav';
 import NoteListMain from '../NoteListMain/NoteListMain';
 import NotePageMain from '../NotePageMain/NotePageMain';
-import AddFolder from '../Add Folder/AddFolder';
-import AddNote from '../Add Note/AddNote';
-import ApiContext from '../ApiContext';
-import config from '../config';
+import AddFolder from '../AddFolder/AddFolder';
+import AddNote from '../AddNote/AddNote';
+import ErrorBoundary from '../ErrorHandlers/ErrorBoundary';
+
 import './App.css';
-import NotefulError from '../NotefulError/NotefulError';
+import config from '../config';
+
 
 class App extends Component {
     state = {
         notes: [],
-        folders: []
+        folders: [],
+        errorBoundaryKey: 0
     };
 
-    componentDidMount() {
-        Promise.all([
-            fetch(`${config.API_ENDPOINT}/notes`),
-            fetch(`${config.API_ENDPOINT}/folders`)
-        ])
-            .then(([notesRes, foldersRes]) => {
-                if (!notesRes.ok)
-                    return notesRes.json().then(e => Promise.reject(e));
-                if (!foldersRes.ok)
-                    return foldersRes.json().then(e => Promise.reject(e));
+    handleBackButton = () => {
+        this.setState(prevState => ({
+            errorBoundaryKey: prevState.errorBoundaryKey + 1
+        }), console.clear());
+    }
 
-                return Promise.all([notesRes.json(), foldersRes.json()]);
+    handleAddFolder = folder => {
+        this.setState({
+            folders: [...this.state.folders, folder]
+        })
+    }
+
+    handleAddNote = note => {
+        this.setState({
+            notes: [...this.state.notes, note]
+        })
+    }
+
+    componentDidMount() {
+        ['folders', 'notes'].map((endPoint) => fetch(`${config.API_ENDPOINT}/${endPoint}`, {
+            method: 'GET',
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        .then(res => {
+            if(!res.ok) {
+                return res.json().then(error => {
+                    console.log(`Error: ${error}`)
+
+                    throw error
+                })
+            }
+            return res.json()
+        })
+        .then(data => {
+            if(endPoint === 'notes') {
+                data.map(note => {
+                    return this.handleAddNote(note)
+                })
+                
+            }
+            else {
+                data.map(folder => {
+                    return this.handleAddFolder(folder)
+                })
+            }
+        })
+        .catch(error => {
+            this.setState({
+                error: `error for ${endPoint}: ${error}`
             })
-            .then(([notes, folders]) => {
-                this.setState({notes, folders});
-            })
-            .catch(error => {
-                console.error({error});
-            });
+        }))
     }
 
     handleDeleteNote = noteId => {
         this.setState({
             notes: this.state.notes.filter(note => note.id !== noteId)
         });
-    };
-
-    handleAddFolder = folder => {
-      this.setState({
-        folders: [...this.state.folders, folder],
-      })
-    }
-  
-    handleAddNote = note => {
-      this.setState({
-        notes: [...this.state.notes, note]
-      })
     }
 
     renderNavRoutes() {
+        
+        //const {notes, folders} = this.state;
         return (
             <>
                 {['/', '/folder/:folderId'].map(path => (
@@ -76,40 +105,50 @@ class App extends Component {
     }
 
     renderMainRoutes() {
-      return (
-        <>
-          {['/', '/folder/:folderId'].map(path => (
-            <Route
-              exact
-              key={path}
-              path={path}
-              render={routeProps => {
-                return <NoteListMain {...routeProps} />;
-              }}
-            />
-          ))}
-          <Route
-            path='/note/:noteId'
-            render={routeProps => {
-              return <NotePageMain {...routeProps} />;
-            }}
-          />
-          <Route path='/add-folder' component={AddFolder} />
-          <Route path='/add-note' component={AddNote} />
-        </>
-      );
+        
+        return (
+            <>
+                {['/', '/folder/:folderId'].map(path => (
+                    <Route
+                        exact
+                        key={path}
+                        path={path}
+                        component={NoteListMain}
+                    />
+                ))}
+                <ErrorBoundary key={this.state.errorBoundaryKey}>
+                <Route
+                    path="/note/:noteId"
+                    component={NotePageMain}
+                />
+                </ErrorBoundary>
+                <Route 
+                    path="/add-folder" 
+                    component={AddFolder} 
+                />
+                <Route 
+                    path="/add-note" 
+                    component={AddNote} 
+                />
+            </>
+        );
     }
 
+
     render() {
-        const value = {
+        const contextValue = {
             notes: this.state.notes,
             folders: this.state.folders,
+            toggle: this.state.toggle,
+            toggleErrors: this.handleErrorToggle,
+            addNote: this.handleAddNote,
+            addFolder: this.handleAddFolder,
             deleteNote: this.handleDeleteNote,
-            handleAddNote: this.handleAddNote,
-            handleAddFolder: this.handleAddFolder
-        };
+            back: this.handleBackButton
+        }
+
         return (
-            <ApiContext.Provider value={value}>
+            <NotefulContext.Provider value={contextValue}>
                 <div className="App">
                     <nav className="App__nav">{this.renderNavRoutes()}</nav>
                     <header className="App__header">
@@ -118,11 +157,9 @@ class App extends Component {
                             <FontAwesomeIcon icon="check-double" />
                         </h1>
                     </header>
-                    <NotefulError>
                     <main className="App__main">{this.renderMainRoutes()}</main>
-                    </NotefulError>
                 </div>
-            </ApiContext.Provider>
+            </NotefulContext.Provider>
         );
     }
 }

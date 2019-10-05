@@ -1,8 +1,8 @@
 import React from 'react';
 import NotefulContext from '../NotefulContext';
-import config from '../config';
 import PropTypes from 'prop-types';
 import ErrorMsg from '../ErrorMsg/ErrorMsg';
+import config from '../config';
 import '../NotefulForm/NotefulForm.css'
 
 export default class AddFolder extends React.Component {
@@ -72,7 +72,8 @@ export default class AddFolder extends React.Component {
         }
 
         this.setState({error: null})
-        fetch(`${process.env.DATABASE_UR}/folders`, {
+
+        fetch(`${config.API_ENDPOINT}/folders`, {
             method: 'POST',
             body: JSON.stringify(folder),
             headers: {
